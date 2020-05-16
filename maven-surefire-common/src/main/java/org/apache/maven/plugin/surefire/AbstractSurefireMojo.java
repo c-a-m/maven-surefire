@@ -1407,8 +1407,8 @@ public abstract class AbstractSurefireMojo
         }
     }
 
-    private boolean canExecuteProviderWithModularPath( Platform platform,
-                                                       ResolvePathResultWrapper resolvedJavaModularityResult )
+    private boolean canExecuteProviderWithModularPath( @Nonnull Platform platform,
+                                                       @Nonnull ResolvePathResultWrapper resolvedJavaModularityResult )
     {
         return useModulePath()
                 && platform.getJdkExecAttributesForTests().isJava9AtLeast()
@@ -2410,7 +2410,8 @@ public abstract class AbstractSurefireMojo
                     reuseForks,
                     platform,
                     getConsoleLogger(),
-                    forkNode );
+                    forkNode,
+                    resolvedJavaModularityResult.isMainModuleDescriptor() );
         }
         else if ( getClassLoaderConfiguration().isManifestOnlyJarRequestedAndUsable() )
         {

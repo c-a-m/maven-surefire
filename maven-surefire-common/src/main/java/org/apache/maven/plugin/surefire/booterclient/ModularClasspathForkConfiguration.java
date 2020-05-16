@@ -55,6 +55,8 @@ import static org.apache.maven.surefire.util.internal.StringUtils.NL;
 public class ModularClasspathForkConfiguration
         extends DefaultForkConfiguration
 {
+    private final boolean mainModuleDescriptor;
+
     @SuppressWarnings( "checkstyle:parameternumber" )
     public ModularClasspathForkConfiguration( @Nonnull Classpath bootClasspath,
                                               @Nonnull File tempDirectory,
@@ -69,11 +71,14 @@ public class ModularClasspathForkConfiguration
                                               boolean reuseForks,
                                               @Nonnull Platform pluginPlatform,
                                               @Nonnull ConsoleLogger log,
-                                              @Nonnull ForkNodeFactory forkNodeFactory )
+                                              @Nonnull ForkNodeFactory forkNodeFactory,
+                                              boolean mainModuleDescriptor )
     {
         super( bootClasspath, tempDirectory, debugLine, workingDirectory, modelProperties, argLine,
             environmentVariables, excludedEnvironmentVariables, debug, forkCount, reuseForks, pluginPlatform, log,
             forkNodeFactory );
+
+        this.mainModuleDescriptor = mainModuleDescriptor;
     }
 
     @Override
@@ -167,38 +172,41 @@ public class ModularClasspathForkConfiguration
                         .append( NL );
             }
 
-            args.append( "--patch-module" )
-                    .append( NL )
-                    .append( moduleName )
-                    .append( '=' )
-                    .append( '"' )
-                    .append( replace( patchFile.getPath(), "\\", "\\\\" ) )
-                    .append( '"' )
-                    .append( NL );
-
-            for ( String pkg : packages )
+            if ( mainModuleDescriptor )
             {
-                args.append( "--add-exports" )
+                args.append( "--patch-module" )
                         .append( NL )
                         .append( moduleName )
-                        .append( '/' )
-                        .append( pkg )
+                        .append( '=' )
+                        .append( '"' )
+                        .append( replace( patchFile.getPath(), "\\", "\\\\" ) )
+                        .append( '"' )
+                        .append( NL );
+
+                for ( String pkg : packages )
+                {
+                    args.append( "--add-exports" )
+                            .append( NL )
+                            .append( moduleName )
+                            .append( '/' )
+                            .append( pkg )
+                            .append( '=' )
+                            .append( "ALL-UNNAMED" )
+                            .append( NL );
+                }
+
+                args.append( "--add-modules" )
+                        .append( NL )
+                        .append( moduleName )
+                        .append( NL );
+
+                args.append( "--add-reads" )
+                        .append( NL )
+                        .append( moduleName )
                         .append( '=' )
                         .append( "ALL-UNNAMED" )
                         .append( NL );
             }
-
-            args.append( "--add-modules" )
-                    .append( NL )
-                    .append( moduleName )
-                    .append( NL );
-
-            args.append( "--add-reads" )
-                    .append( NL )
-                    .append( moduleName )
-                    .append( '=' )
-                    .append( "ALL-UNNAMED" )
-                    .append( NL );
 
             args.append( startClassName );
 
